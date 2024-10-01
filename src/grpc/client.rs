@@ -6,8 +6,17 @@ pub mod pingservice {
 }
 
 // Function to send a message to the gRPC server
-pub async fn send_ping(message: String) -> Result<(), Box<dyn std::error::Error>> {
-    let mut client = PingServiceClient::connect("http://[::1]:50051").await?;
+pub async fn send_ping(
+    message: String,
+    address: String,
+    port: u16,
+) -> Result<(), Box<dyn std::error::Error>> {
+
+    // Construct the full server address
+    let server_url = format!("http://{}:{}", address, port);
+
+    // Connect to the gRPC server
+    let mut client = PingServiceClient::connect(server_url).await?;
 
     // Create a PingRequest message with the provided message
     let request = tonic::Request::new(PingRequest {

@@ -18,13 +18,25 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Test command
-    Test {
-        name: Option<String>,
-    },
 
     /// Server-related commands
     Server(ServerArgs),
+
+    /// Send a ping to the server
+    /// Client command to send a ping message
+    Client {
+        #[arg(short, long, required = true)]
+        message: String,
+
+        /// Optional server address
+        #[arg(short = 's', long, default_value = "[::1]")]
+        server_address: String,
+
+        /// Optional port number
+        #[arg(short = 'p', long, default_value = "50051")]
+        port: u16,
+    },
+
 }
 
 #[derive(Args, Debug)]
@@ -39,13 +51,6 @@ enum ServerCommands {
     Start {
         name: Option<String>,
     },
-
-    /// Send a ping to the server
-    Client {
-        /// The message to send to the server
-        message: Option<String>,
-    },
-
     /// Check the status of the server
     Status {
         name: Option<String>,
@@ -57,18 +62,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Cli::parse();
 
     match args.command {
-        Commands::Test { name } => {
-            println!("You selected Test: {:?}", name);
+        Commands::Client { message, server_address, port  } => {
+            println!("You've selected Client with message: {message}, server: {server_address}, port: {port}");
+            grpc::client::send_ping(message, server_address, port).await?; // Call the send_ping function from the client module
         }
         Commands::Server(server) => match server.command {
             ServerCommands::Start { name } => {
                 println!("Starting server: {:?}", name);
                 grpc::server::start_server().await?; // Call the start_server function from the server module
-            }
-            ServerCommands::Client { message } => {
-                let message = message.unwrap_or_else(|| "Ping".to_string());
-                println!("Sending message to server: {:?}", message);
-                grpc::client::send_ping(message).await?; // Call the send_ping function from the client module
             }
             ServerCommands::Status { name } => {
                 println!("You've selected Status: {:?}", name);

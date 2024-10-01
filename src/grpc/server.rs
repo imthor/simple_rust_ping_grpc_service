@@ -26,7 +26,6 @@ impl PingService for MyPingService {
     }
 }
 
-// Mark the start_server function as public
 pub async fn start_server() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "[::1]:50051".parse()?;
     let ping_service = MyPingService::default();
